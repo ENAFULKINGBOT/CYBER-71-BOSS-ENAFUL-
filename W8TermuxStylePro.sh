@@ -57,8 +57,9 @@ def print_banner():
 ║                                                               ║
 ║            Create Your Custom Cyberpunk Terminal              ║
 ║                                                               ║
-║          {Colors.GRAY}Credits: 007Team/ENAFUL{Colors.CYAN}                             ║
-║    {Colors.GRAY}GitHub: https://github.com/007TEAMBOSSENAFUL/VS-EDITOR-ENAFUL.git}             ║
+║          {Colors.GRAY}Credits: 007Team/ENAFUL{Colors.CYAN}
+║    {Colors.GRAY}GitHub: https://github.com/007TEAMBOSSENAFUL/VS-EDITOR-ENAFUL.git}
+
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.RESET}
 """)
