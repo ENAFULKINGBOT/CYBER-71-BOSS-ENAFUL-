@@ -1,0 +1,151 @@
+import telebot
+from telebot import types
+from flask import Flask, request, render_template_string, redirect, session, url_for, send_from_directory
+import os
+from threading import Thread
+
+# --- কনফিগারেশন ---
+API_TOKEN = '8756220877:AAGKKlYU8MDptXx2b5-EvCG_hwgRREhDfQk' 
+ADMIN_USERNAME = 'CYBER_71_ENAFUL' 
+SERVER_URL = "https://standards-benchmark-norman-mentor.trycloudflare.com" 
+
+UPLOAD_FOLDER = 'uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+bot = telebot.TeleBot(API_TOKEN)
+app = Flask(__name__)
+app.secret_key = "king_enaful_cyber_ultimate_v6"
+
+# --- ৩. মেইন হ্যাকিং ইন্টারফেস (নতুন লোগো ও ম্যাট্রিক্স সহ) ---
+HACK_THEME_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSTEM COMPROMISED - KING OF ENAFUL</title>
+    <style>
+        body { background-color: black; color: #00FF00; font-family: 'Courier New', monospace; margin: 0; text-align: center; overflow: hidden; }
+        canvas { position: absolute; top: 0; left: 0; z-index: -1; }
+        .main-container { position: relative; z-index: 1; padding-top: 50px; }
+        
+        /* কাস্টম লোগো স্টাইল */
+        .cyber-logo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid #0f0;
+            box-shadow: 0 0 30px #0f0, inset 0 0 20px #0f0;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        .cyber-logo:hover { transform: scale(1.1) rotate(5deg); }
+
+        h1 { color: red; text-shadow: 0 0 20px red; margin: 10px 0; }
+        .terminal-box { border: 1px solid #0f0; padding: 15px; background: rgba(0, 20, 0, 0.8); display: inline-block; width: 85%; max-width: 400px; text-align: left; font-size: 13px; margin-bottom: 20px; box-shadow: 0 0 10px #0f0;}
+        .btn { background: #0f0; color: #000; border: none; padding: 15px 40px; font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 5px; box-shadow: 0 0 20px #0f0; text-decoration: none; display: inline-block; }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+    <div class="main-container">
+        <img src="https://i.ibb.co/VvzB7pY/king-of-enaful-logo.png" alt="KING OF ENAFUL Logo" class="cyber-logo">
+        
+        <h1>HACKED BY KING OF ENAFUL</h1>
+        <p style="color:white;">Owner: <b>Boss Enaful</b></p>
+        <div class="terminal-box">
+            <div>[+] Initializing Secure Session... Done.</div>
+            <div>[+] Identity: Boss Enaful - CONFIRMED.</div>
+            <div>[+] Status: ACCESS RESTRICTED.</div>
+            <div>[+] Target: BIOMETRIC VAULT.</div>
+        </div>
+        <br><br>
+        <a href="/biometric" class="btn">SCAN BIOMETRIC & ENTER</a>
+    </div>
+    <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const letters = "01010101";
+        const fontSize = 16; const columns = canvas.width / fontSize;
+        const drops = []; for (let i = 0; i < columns; i++) drops[i] = 1;
+        function draw() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#0F0"; ctx.font = fontSize + "px arial";
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 33);
+    </script>
+</body>
+</html>
+"""
+
+# --- ৪. ফেস স্ক্যানার পেজ ---
+SCANNER_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { background: black; color: #0f0; text-align: center; font-family: monospace; }
+        .camera-container { position: relative; display: inline-block; margin-top: 50px; }
+        video { width: 90%; max-width: 400px; border: 2px solid #0f0; border-radius: 15px; }
+        .scan-bar { width: 100%; height: 4px; background: #0f0; position: absolute; top: 0; animation: scan 2s infinite; box-shadow: 0 0 15px #0f0; }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        .status { margin-top: 20px; font-size: 18px; color: yellow; }
+    </style>
+</head>
+<body>
+    <h2>KING OF ENAFUL BIOMETRIC</h2>
+    <div class="camera-container">
+        <video id="webcam" autoplay playsinline></video>
+        <div class="scan-bar"></div>
+    </div>
+    <div class="status" id="status">INITIALIZING SCANNER...</div>
+    <form action="/auth" method="POST" id="authForm"><button type="submit" style="display:none;"></button></form>
+
+    <script>
+        const video = document.getElementById('webcam');
+        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+            video.srcObject = stream;
+            setTimeout(() => {
+                document.getElementById('status').innerText = "FACE DETECTED: MATCHING...";
+                document.getElementById('status').style.color = "#0f0";
+                setTimeout(() => { document.getElementById('authForm').submit(); }, 2000);
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
+"""
+
+@app.route('/')
+def index(): return render_template_string(HACK_THEME_HTML)
+
+@app.route('/biometric')
+def biometric(): return render_template_string(SCANNER_HTML)
+
+@app.route('/auth', methods=['POST'])
+def auth():
+    session['logged_in'] = True
+    bot.send_message(ADMIN_USERNAME, "🔓 **ACCESS GRANTED:** Boss Enaful-এর চেহারা শনাক্ত হয়েছে। সার্ভার উন্মুক্ত।")
+    return redirect(url_for('list_files'))
+
+@app.route('/files')
+def list_files():
+    if not session.get('logged_in'): return redirect(url_for('index'))
+    files = os.listdir(UPLOAD_FOLDER)
+    file_list = "<body style='background:black; color:#0f0; font-family:monospace; padding:20px;'>"
+    file_list += "<h2>☣️ KING OF ENAFUL SECURE STORAGE</h2><hr color='red'>"
+    if not files:
+        file_list += "<p>No files found in server.</p>"
+    else:
+        for f in files:
+            file_list += f'<div>🔒 <a href="/
+

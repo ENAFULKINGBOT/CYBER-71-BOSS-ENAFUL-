@@ -1,0 +1,16 @@
+import
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+API_TKEN = '8689609372:AAGpZlTNbdFvR3n6OUJP8aAar2y47Jdcac'
+bot telebot.TeleBot(API_TNNEL_LINK = "https://t.me/+xi6S4zVPjiplM
+apps_list = 
+    ("📱 WHmsBomber 69 [5MB]", "app_1"), ("🏬 WHAppStore 69 [12MB]", "app_2")
+    ("📱 WFreeFireVIP 69 [80MB]", "app_3"), ("📱 WHImoPremium 69 [35MB]", "app_4"),
+    ("📱 H Camera Scan 69 [10MB]", "app_5"), ("📱 WHPhish8266 69 [4MB]", "app_"),
+    ("📱WHWiFiBrute 69 [7MB]", "app_7"), ("📱 DMSS_69_Premium [45MB]", "app_8"),
+    (" WHGalleryBuild 69 [15MB]", "app_9"), ("📱 WHEmailBomber 69 [6MB]", "app_10"),
+    (📱 WHAngry Port 69 [3MB]", "app_11"), ("📱 MT Manager_69 [18MB]", "app_12"),
+    "📱 Apktool M_69 [20MB]", "app_13"), ("📱 APK Editor_69 [14MB]", "app_14"),    ("📱 WHSmsBomberV2 69 [5MB]", "app_15"), ("📱 WHSmsBomberPro 69 [6MB]", "app_16("📱 WHPremiumYT 69 [25MB]", "app_17"), ("📱 WHPremiumYT All 69 [30MB]", "app_18")
+ef get_inline_keyboard():
+    inline_markup = InlineKeyboardMarkup(row_width=2)   search_btn = InlineKeyboardButton("🔍 Search Apps", callback_data="search_m  channel_btn = InlineKeyboardButton("📢 Join Channel", url=CHANNEL_LINK)
+   inline_markup.add(search_btn, chaneply_markup = ReplyKeyboardMarkup(resize_keyboard=True
+    reply_markup.row(KeyboardButton(🔍

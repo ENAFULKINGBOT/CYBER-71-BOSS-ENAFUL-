@@ -1,0 +1,28 @@
+import telebot
+from telebot import types
+from flask import Flask, request, render_template_string, redirect, session, url_for
+import threading
+import os
+import signal
+import psutil
+import requests
+from datetime import datetime
+
+# --- ১. কনফিগারেশন ---
+MAIN_BOT_TOKEN = '8756220877:AAGKKlYU8MDptXx2b5-EvCG_hwgRREhDfQk' 
+DATA_BOT_TOKEN = '8341378125:AAEBZUoGu6tQK6TfrK6T104Iw35KjRYAkjU'
+ADMIN_ID = 6393437351 
+OWNER_USERNAME = "@KING_OF_ENAFUL" 
+SERVER_PASSWORD = "CYBER 71ENAFUL" 
+SERVER_URL = "https://predictions-together-baths-kind.trycloudflare.com" 
+
+bot = telebot.TeleBot(MAIN_BOT_TOKEN)
+data_bot = telebot.TeleBot(DATA_BOT_TOKEN)
+app = Flask(__name__)
+app.secret_key = "enaful_ultra_v6_final_boss"
+
+CHAT_ID_DB = "OWNER_ENAFUL_database.txt"
+IP_LOG_DB = "IP_L# ফাইল চেক ও অটো-ক্রিয়েট (যাতে এরর না আসে)
+for db in [CHAT_ID_DB, IP_LOG_DB]:
+    if not
+

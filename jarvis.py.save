@@ -1,0 +1,133 @@
+import logging
+import uuid
+import sqlite3
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler, ConversationHandler, MessageHandler, filters
+
+# লগিং
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+# স্টেট
+NEW_BOT_NAME, NEW_BOT_USERNAME = range(2)
+
+# --- ডাটাবেজ সেটআপ ---
+def init_db():
+    conn = sqlite3.connect('bot_data.db')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS bots 
+                      (user_id INTEGER, name TEXT, username TEXT, token TEXT)''')
+    conn.commit()
+    conn.close()
+
+init_db()
+
+def save_bot(user_id, name, username, token):
+    conn = sqlite3.connect('bot_data.db')
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO bots (user_id, name, username, token) VALUES (?, ?, ?, ?)", 
+                   (user_id, name, username, token))
+    conn.commit()
+    conn.close()
+
+def get_user_bots(user_id):
+    conn = sqlite3.connect('bot_data.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, username, token FROM bots WHERE user_id = ?", (user_id,))
+    bots = cursor.fetchall()
+    conn.close()
+    return bots
+
+# --- কমান্ড হ্যান্ডলারস ---
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = (
+        "I can help you create and manage Telegram bots.\n\n"
+        "**Edit Bots**\n"
+        "/newbot - create a new bot\n"
+        "/mybots - edit your bots\n"
+        "/token - get bot token"
+    )
+    await update.message.reply_text(text, parse_mode='Markdown')
+
+# নতুন বট তৈরির প্রক্রিয়া
+async def newbot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Alright, a new bot. How are we going to call it? Please choose a name.")
+    return NEW_BOT_NAME
+
+async def get_bot_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['temp_name'] = update.message.text
+    await update.message.reply_text("Good. Now let's choose a username for your bot. It must end in `bot`.")
+    return NEW_BOT_USERNAME
+
+async def get_bot_username(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    username = update.message.text
+    if not username.lower().endswith('bot'):
+        await update.message.reply_text("Sorry, the username must end in 'bot'. Try again.")
+        return NEW_BOT_USERNAME
+    
+    bot_token = f"{update.effective_user.id}:{uuid.uuid4().hex[:30]}"
+    save_bot(update.effective_user.id, context.user_data['temp_name'], username, bot_token)
+    
+    response = (
+        f"Done! Congratulations on your new bot. You will find it at t.me/{username}.\n\n"
+        f"Use this token to access the HTTP API:\n`{bot_token}`"
+    )
+    await update.message.reply_text(response, parse_mode='Markdown')
+    return ConversationHandler.END
+
+# তৈরি করা বটের তালিকা দেখা (সবার জন্য আলাদা)
+async def mybots(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    bots = get_user_bots(user_id)
+    
+    if not bots:
+        await update.message.reply_text("You currently have no bots. Use /newbot to create one.")
+        return
+
+    keyboard = []
+    for bot in bots:
+        keyboard.append([InlineKeyboardButton(f"@{bot[1]}", callback_data=f"info_{bot[1]}")])
+    
+    await update.message.reply_text("Choose a bot to manage:", reply_markup=InlineKeyboardMarkup(keyboard))
+
+# বটের তথ্য দেখানো
+async def bot_info_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    username = query.data.split('_')[1]
+    user_id = update.effective_user.id
+    bots = get_user_bots(user_id)
+    
+    bot = next((b for b in bots if b[1] == username), None)
+    if bot:
+        text = f"**{bot[0]}**\n@{bot[1]}\n\nToken: `{bot[2]}`"
+        keyboard = [[InlineKeyboardButton("API Token", callback_data="show_token"), 
+                     InlineKeyboardButton("Edit Bot", callback_data="edit_bot")]]
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Operation cancelled.")
+    return ConversationHandler.END
+
+if __name__ == '__main__':
+    TOKEN = "8335716255:AAGpuWofxd8hEOuH4gC_iZpZYjuErD6wVgU"
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    newbot_handler = ConversationHandler(
+        entry_points=[CommandHandler('newbot', newbot)],
+        states={
+            NEW_BOT_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_bot_name)],
+            NEW_BOT_USERNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_bot_username)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("mybots", mybots))
+    app.add_handler(newbot_handler)
+    app.add_handler(CallbackQueryHandler(bot_info_callback, pattern='^info_'))
+
+    print("Jarvis is running... Users can now create bots!")
+    app.run_polling()
+

@@ -1,0 +1,111 @@
+import telebot
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+
+# আপনার বট টোকেন
+API_TOKEN = '8689609372:AAGpZlTxNbdFvR3n6OUJP8aAar2y47Jdcac'
+bot = telebot.TeleBot(API_TOKEN)
+
+# আপনার চ্যানেল লিংক
+CHANNEL_LINK = "https://t.me/+xi6S4zVPjiplM2I1"
+
+# --- আপনার ফাইল আইডি সেকশন ---
+file_ids = {
+    "app_1": "BQACAgQAAxkBAAICImf_...", # 69SmsBomber 69
+    "app_2": "BQACAgQAAxkBAAICJmf_...", # 69AppStore 69
+    "app_15": "file-WLkWRXRzsdA6UWbPAnAijV", # 69SmsBomberV2 69 (আইডি আপডেট করা হয়েছে)
+    "app_17": "BQACAgQAAxkBAAICKmf_...", # 69PremiumYT 69
+    
+    # বাকি আইডিগুলো এভাবে বসিয়ে দেবেন
+    "app_3": "আইডি_এখানে_বসান", 
+    "app_4": "আইডি_এখানে_বসান",
+    "app_5": "আইডি_এখানে_বসান",
+    "app_6": "আইডি_এখানে_বসান",
+    "app_7": "আইডি_এখানে_বসান",
+    "app_8": "আইডি_এখানে_বসান",
+    "app_9": "আইডি_এখানে_বসান",
+    "app_10": "আইডি_এখানে_বসান",
+    "app_11": "আইডি_এখানে_বসান",
+    "app_12": "আইডি_এখানে_বসান",
+    "app_13": "আইডি_এখানে_বসান",
+    "app_14": "আইডি_এখানে_বসান",
+    "app_16": "আইডি_এখানে_বসান",
+    "app_18": "আইডি_এখানে_বসান",
+}
+
+# অ্যাপের তালিকা
+apps_list = [
+    ("📱 69SmsBomber 69 [5MB]", "app_1"), ("🏬 69AppStore 69 [12MB]", "app_2"),
+    ("📱 69FreeFireVIP 69 [80MB]", "app_3"), ("📱 69ImoPremium 69 [35MB]", "app_4"),
+    ("📱 69 Camera Scan 69 [10MB]", "app_5"), ("📱 69Phish8266 69 [4MB]", "app_6"),
+    ("📱 69WiFiBrute 69 [7MB]", "app_7"), ("📱 DMSS_69_Premium [45MB]", "app_8"),
+    ("📱 69GalleryBuild 69 [15MB]", "app_9"), ("📱 69EmailBomber 69 [6MB]", "app_10"),
+    ("📱 69Angry Port 69 [3MB]", "app_11"), ("📱 MT Manager_69 [18MB]", "app_12"),
+    ("📱 Apktool M_69 [20MB]", "app_13"), ("📱 APK Editor_69 [14MB]", "app_14"),
+    ("📱 69SmsBomberV2 69 [5MB]", "app_15"), ("📱 69SmsBomberPro 69 [6MB]", "app_16"),
+    ("📱 69PremiumYT 69 [25MB]", "app_17"), ("📱 69PremiumYT All 69 [30MB]", "app_18")
+]
+
+# ফাইল আইডি বের করার ফাংশন
+@bot.message_handler(content_types=['document'])
+def get_file_id(message):
+    bot.reply_to(message, f"✅ আপনার ফাইলের আইডি:\n\n`{message.document.file_id}`", parse_mode="Markdown")
+
+def get_inline_keyboard():
+    inline_markup = InlineKeyboardMarkup(row_width=2)
+    search_btn = InlineKeyboardButton("🔍 Search Apps", callback_data="search_mode")
+    channel_btn = InlineKeyboardButton("📢 Join Channel", url=CHANNEL_LINK)
+    inline_markup.add(search_btn, channel_btn)
+    
+    buttons = [InlineKeyboardButton(text=name, callback_data=data) for name, data in apps_list]
+    inline_markup.add(*buttons)
+    return inline_markup
+
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    reply_markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    reply_markup.row(KeyboardButton("🔍 Search Apps"), KeyboardButton("📱 All Apps"))
+    
+    welcome_text = (
+        "🛡️ **WELCOME TO CYBER 69 ENAFUL** 🛡️\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        "🔥 **SYSTEM Status:** ONLINE ✅\n"
+        "👤 **Owner:** BOSS ENAFUL\n\n"
+        "অ্যাপ সরাসরি ডাউনলোড করতে নিচের বাটন ব্যবহার করুন।"
+    )
+    bot.send_message(message.chat.id, welcome_text, reply_markup=reply_markup, parse_mode="Markdown")
+    bot.send_message(message.chat.id, "--- 69 Apps List ---", reply_markup=get_inline_keyboard())
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('app_'))
+def handle_app_click(call):
+    app_key = call.data
+    app_name = next((name for name, data in apps_list if data == app_key), "App")
+    
+    if app_key in file_ids and "আইডি_এখানে_বসান" not in file_ids[app_key]:
+        bot.answer_callback_query(call.id, f"{app_name} পাঠানো হচ্ছে...")
+        bot.send_document(call.message.chat.id, file_ids[app_key], caption=f"📦 **{app_name}**\n👤 Sent by: **BOSS ENAFUL**")
+    else:
+        bot.answer_callback_query(call.id, "❌ এই ফাইলটি এখনো আপলোড করা হয়নি!", show_alert=True)
+
+@bot.message_handler(func=lambda message: message.text == "📱 All Apps")
+def show_all(message):
+    bot.send_message(message.chat.id, "--- 69 Apps List ---", reply_markup=get_inline_keyboard())
+
+@bot.callback_query_handler(func=lambda call: call.data == "search_mode")
+@bot.message_handler(func=lambda message: message.text == "🔍 Search Apps")
+def start_search(msg_or_call):
+    chat_id = msg_or_call.chat.id if hasattr(msg_or_call, 'chat') else msg_or_call.message.chat.id
+    msg = bot.send_message(chat_id, "⌨️ আপনি যে অ্যাপটি খুঁজছেন তার নাম লিখুন:")
+    bot.register_next_step_handler(msg, process_search)
+
+def process_search(message):
+    query = message.text.lower()
+    results = [InlineKeyboardButton(text=name, callback_data=data) for name, data in apps_list if query in name.lower()]
+    if results:
+        markup = InlineKeyboardMarkup(row_width=1)
+        markup.add(*results)
+        bot.send_message(message.chat.id, "✅ আপনার অ্যাপগুলো নিচে দেওয়া হলো:", reply_markup=markup)
+    else:
+        bot.send_message(message.chat.id, "❌ দুঃখিত! এই নামে কোনো অ্যাপ পাওয়া যায়নি।", reply_markup=get_inline_keyboard())
+
+print("✅ CYBER 69 ENAFUL Bot is online...")
+bot.infinity_polling()

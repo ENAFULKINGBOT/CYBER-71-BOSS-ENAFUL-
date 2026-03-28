@@ -1,0 +1,108 @@
+import telebot
+from telebot import types
+import os
+import time
+
+# --- কনফিগারেশন ---
+API_TOKEN = '8714968781:AAHO8Z3JIXkh4swijmFtg2G5_wTdhj59F3c'
+ADMIN_ID = 6823368645  
+
+bot = telebot.TeleBot(API_TOKEN)
+USER_FILE = "users.txt"
+
+if not os.path.exists(USER_FILE):
+    with open(USER_FILE, "w") as f: pass
+
+# --- ডাটাবেস ফাংশন ---
+def get_users():
+    with open(USER_FILE, "r") as f:
+        return f.read().splitlines()
+
+def add_user(user_id):
+    users = get_users()
+    if str(user_id) not in users:
+        with open(USER_FILE, "a") as f:
+            f.write(str(user_id) + "\n")
+
+# --- মেনু বাটন সমূহ ---
+def main_menu():
+    markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+    item1 = types.KeyboardButton('📤 Broadcast APK/File')
+    item2 = types.KeyboardButton('📊 Full Stats')
+    item3 = types.KeyboardButton('🛠 Admin Tools')
+    item4 = types.KeyboardButton('💬 Contact Admin')
+    item5 = types.KeyboardButton('ℹ️ About Bot')
+    markup.add(item1, item2, item3, item4, item5)
+    return markup
+
+def cancel_menu():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton('❌ Cancel'))
+    return markup
+
+# --- হ্যান্ডলার সমূহ ---
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    add_user(message.chat.id)
+    welcome_text = "✨ **BOSS ENAFUL ব্রডকাস্ট বটে স্বাগতম!** ✨\n\n👇 নিচের মেনু ব্যবহার করুন:"
+    bot.reply_to(message, welcome_text, parse_mode='Markdown', reply_markup=main_menu())
+
+@bot.message_handler(func=lambda message: True)
+def handle_menu(message):
+    if message.chat.id == ADMIN_ID:
+        if message.text == '📊 Full Stats':
+            users = get_users()
+            bot.reply_to(message, f"👥 মোট ইউজার: {len(users)}\n✅ স্ট্যাটাস: একটিভ", parse_mode='Markdown')
+
+        elif message.text == '📤 Broadcast APK/File':
+            msg = bot.send_message(message.chat.id, "📁 যেকোনো ফাইল, APK বা টেক্সট পাঠান।", reply_markup=cancel_menu())
+            bot.register_next_step_handler(msg, start_broadcasting)
+
+        elif message.text == '🛠 Admin Tools':
+            # আপনার আগের অ্যাডমিন টুলস লজিক এখানে থাকবে...
+            bot.reply_to(message, "🛠 অ্যাডমিন টুলস ওপেন হয়েছে।")
+
+    if message.text == '💬 Contact Admin':
+        bot.reply_to(message, "👨‍💻 অ্যাডমিন: @BOSS_ENAFUL")
+    
+    elif message.text == 'ℹ️ About Bot':
+        bot.reply_to(message, "🤖 Cyber 71 Enaful Assistant\nমালিক: BOSS ENAFUL")
+
+def start_broadcasting(message):
+    if message.text == '❌ Cancel':
+        bot.send_message(ADMIN_ID, "🚫 ব্রডকাস্ট বাতিল।", reply_markup=main_menu())
+        return
+
+    users = get_users()
+    success = 0
+    bot.send_message(ADMIN_ID, "🚀 ব্রডকাস্টিং শুরু হয়েছে...")
+
+    for user in users:
+        try:
+            if message.content_type == 'text':
+                bot.send_message(user, message.text)
+            elif message.content_type == 'document':
+                bot.send_document(user, message.document.file_id, caption=message.caption)
+            elif message.content_type == 'photo':
+                bot.send_photo(user, message.photo[-1].file_id, caption=message.caption)
+            elif message.content_type == 'video':
+                bot.send_video(user, message.video.file_id, caption=message.caption)
+            elif message.content_type == 'audio':
+                bot.send_audio(user, message.audio.file_id, caption=message.caption)
+            elif message.content_type == 'voice':
+                bot.send_voice(user, message.voice.file_id, caption=message.caption)
+            success += 1
+        except:
+            continue
+            
+    bot.send_message(ADMIN_ID, f"✅ ব্রডকাস্ট সম্পন্ন!\n📤 সফল: {success} জন।", reply_markup=main_menu())
+
+while True:
+    try:
+        print("বট চলছে (BOSS ENAFUL Edition)...")
+        bot.polling(none_stop=True, interval=0, timeout=20)
+    except Exception as e:
+        print(f"Error: {e}. Reconnecting...")
+        time.sleep(5)
+
